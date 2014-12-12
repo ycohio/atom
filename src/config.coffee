@@ -601,11 +601,10 @@ class Config
       keyPath = scopeSelector
       scopeSelector = null
 
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
-      not _.valueForKeyPath(settings, keyPath)?
-    else
-      not _.valueForKeyPath(@settings, keyPath)?
+
+    scopeSelector ?= '*'
+    settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+    not _.valueForKeyPath(settings, keyPath)?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
@@ -804,7 +803,7 @@ class Config
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
   getRawValue: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath)
+    value = @getRawScopedValue(['xx'], keyPath)
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
@@ -820,7 +819,7 @@ class Config
     value = undefined if _.isEqual(defaultValue, value)
 
     oldValue = _.clone(@get(keyPath))
-    _.setValueForKeyPath(@settings, keyPath, value)
+    @setRawScopedValue('*', keyPath, value)
     newValue = @get(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
